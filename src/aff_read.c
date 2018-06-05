@@ -19,7 +19,7 @@
  *   key_lenght, number of complex elements in key
  *****************************************************************************************************************/
 
-int aff_read_key_list ( double _Complex * z, char*filename, char**key_list, int key_num, int key_length ) {
+int aff_read_key_list ( double _Complex * z, char*filename, char**key_list, const int key_num, const int key_length ) {
 #ifdef HAVE_LHPC_AFF
   int exitstatus;
   struct AffReader_s *affr = NULL;

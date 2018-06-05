@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <complex.h>
 #include <math.h>
 #include <R.h>
 #include <Rinternals.h>
@@ -8,57 +9,46 @@
 
 #include "aff_read.h"
 
-SEXP AffReadKeyList ( SEXP qsq_, SEXP n_, SEXP l_, SEXP m_, SEXP dvec_, SEXP gamma_, SEXP A_, SEXP tol_, SEXP Lmax_ ) {
+SEXP aff_read_key_list_interface ( SEXP filename_, SEXP key_list_, SEXP key_num_, SEXP key_length_  ) {
 /* int aff_read_key_list ( double _Complex * z, char*filename, char**key_list, int key_num, int key_length ) */
 
   
 
-  PROTECT( qsq_   = AS_NUMERIC(qsq_)   );
-  PROTECT( l_     = AS_INTEGER(l_)     );
-  PROTECT( m_     = AS_INTEGER(m_)     );
-  PROTECT( gamma_ = AS_NUMERIC(gamma_) );
-  PROTECT( A_     = AS_NUMERIC(A_)     );
-  PROTECT( dvec_  = AS_INTEGER(dvec_)  );
-  PROTECT( n_     = AS_INTEGER(n_)     );
-  PROTECT( tol_   = AS_NUMERIC(tol_)   );
-  PROTECT( Lmax_  = AS_INTEGER(Lmax_)  );
+  PROTECT( filename_   = AS_CHARACTER(filename_   ) );
+  PROTECT( key_list_   = AS_CHARACTER(key_list_ ) );
+  PROTECT( key_num_    = AS_INTEGER(key_num_    ) );
+  PROTECT( key_length_ = AS_INTEGER(key_length_ ) );
 
-  double       *qsq    = NUMERIC_POINTER(qsq_);
-  const int    l       = INTEGER_POINTER(l_)[0];
-  const int    m       = INTEGER_POINTER(m_)[0];
-  double       *gamma  = NUMERIC_POINTER(gamma_);
-  double       *A      = NUMERIC_POINTER(A_);
-  const int    n       = INTEGER_POINTER(n_)[0];
-  const double tol     = NUMERIC_POINTER(tol_)[0];
-  int          *dvec   = INTEGER_POINTER(dvec_);
-  const int    Lmax    = INTEGER_POINTER(Lmax_)[0];
+  char      *filename  = CHARACTER_POINTER(filename_);
+  char      **key_list = CHARACTER_POINTER(key_list_);
+  const int key_num    = INTEGER_POINTER(key_num_)[0];
+  const int key_length = INTEGER_POINTER(key_length_)[0];
+
   SEXP res;
   Rcomplex * resp;
-  double ires[2];
-  PROTECT(res = NEW_COMPLEX(n));
+  double _Complex *ires = (double _Complex *)malloc ( key_num * key_length * sizeof(double _Complex) );
+  if ( ires == NULL ) {
+    fprintf ( stderr, "[aff_read_key_list_interface] Error, ires is NULL\n");
+    return(NULL);
+  }
+  PROTECT(res = NEW_COMPLEX(key_num * key_length));
   resp = COMPLEX_POINTER(res);
 
-  for(int i = 0; i < n; i ++) {
-    int exitstatus = 0;
+  int exitstatus = aff_read_key_list ( ires, filename, key_list, key_num, key_length );
+  if ( exitstatus != 0  ) {
+    fprintf ( stderr, "[aff_read_key_list_interface] Error from aff_read_key_list, status was %d\n", exitstatus );
+    return(NULL);
+  }
 
-    /* check for NaN or NA in qsq */
-    if(ISNAN(qsq[i]) || ISNA(qsq[i])) {
-      resp[i].r = NA_REAL;
-      resp[i].i = NA_REAL;
-    }
-    else {
-      exitstatus = dzeta_function (ires, qsq[i], l, m, dvec, gamma[i], A[i], tol, 1.e12, Lmax);
-      resp[i].r = ires[0];
-      resp[i].i = ires[1];
-    }
-
-    /* check for anything went wrong in dzeta_function evaluation */
-    if( exitstatus != 0 ) {
-      warning("[QZetaFunction] Error from dzeta_function for momentum number %d, status was %d\n", i, exitstatus);
-      resp[i].r = NA_REAL;
-      resp[i].i = NA_REAL;
+  unsigned int ik = 0;
+  for ( int i = 0; i < key_num; i++ ) {
+    for ( int k = 0; k < key_length; k++ ) {
+      resp[ik].r = creal( ires[ik] );
+      resp[ik].i = cimag( ires[ik] );
     }
   }
+
+  free ( ires );
 
   UNPROTECT(10);
   return(res);
