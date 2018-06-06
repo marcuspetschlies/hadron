@@ -1,5 +1,8 @@
 # source this file to set the environment variables before calling R CMD INSTALL
 
+# export AFF_DIR=${HOME}/software/qlua/momproj/build-16.04.2-Ubuntu/aff/
+export AFF_DIR=${HOME}/software/qlua/momproj/build-16.04.2-Ubuntu-gcc/aff
+
 export GSL_DIR=${HOME}/software/gsl/gsl-1.8/build-16.04.1-Ubuntu
 
 export QUADMATH_LIB_DIR=/usr/lib/gcc/x86_64-linux-gnu/5/
