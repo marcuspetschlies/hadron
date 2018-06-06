@@ -112,6 +112,7 @@ SEXP aff_read_key_list_interface ( SEXP filename_, SEXP key_list_, SEXP key_num_
     return(R_NilValue);
   }
 
+#pragma omp parallel for
   for ( int i = 0; i < items; i++ ) {
     resp[i].r = creal( ires[i] );
     resp[i].i = cimag( ires[i] );

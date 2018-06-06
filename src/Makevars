@@ -1,3 +1,3 @@
 PKG_LIBS=-L${GSL_DIR}/lib -lgsl -lgslcblas -L${QUADMATH_LIB_DIR}/ -L${AFF_DIR}/lib -llhpc-aff -lquadmath -lm
-PKG_CFLAGS=-I${GSL_DIR}/include -I${QUADMATH_INCLUDE_DIR}/  -O3 -Wall -I${AFF_DIR}/include -DHAVE_LHPC_AFF -fPIC
+PKG_CFLAGS=-I${GSL_DIR}/include -I${QUADMATH_INCLUDE_DIR}/  -O3 -Wall -I${AFF_DIR}/include -DHAVE_LHPC_AFF -fPIC -fopenmp
 PKG_LDFLAGS=-L${GSL_DIR}/lib/ -lgsl -lgslcblas  -L${QUADMATH_LIB_DIR}/ -L${AFF_DIR}/lib -llhpc-aff -lquadmath -lm -fPIC
