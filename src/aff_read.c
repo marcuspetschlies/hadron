@@ -36,7 +36,6 @@ int aff_read_key ( double _Complex * z, char*filename, char*key, const int key_l
   }
 
   // open aff file
-  fprintf(stdout, "# [aff_read_key] trying to open file %s\n", filename);
   affr = aff_reader (filename);
   if ( ( aff_status_str = aff_reader_errstr(affr) ) != NULL ) {
     fprintf(stderr, "[aff_read_key] Error from aff_reader, status was %s %s %d\n", aff_status_str, __FILE__, __LINE__ );
@@ -58,6 +57,57 @@ int aff_read_key ( double _Complex * z, char*filename, char*key, const int key_l
   if( exitstatus != 0 ) {
     fprintf(stderr, "[aff_read_key] Error from aff_node_get_complex, status was %d %s %d\n", exitstatus, __FILE__, __LINE__);
     return(3);
+  }
+
+  // close aff file
+  aff_reader_close (affr);
+
+  return(0);
+#else
+  return( 100 );
+#endif
+}  // end of aff_read_key
+
+
+int aff_read_key_list ( double _Complex * z, char * filename, char ** key_list, const int key_num, const int key_length ) {
+#ifdef HAVE_LHPC_AFF
+  int exitstatus;
+  struct AffReader_s *affr = NULL;
+  struct AffNode_s *affn = NULL, *affdir = NULL;
+  char * aff_status_str = NULL;
+
+  if ( z == NULL ) {
+    fprintf(stderr, "[aff_read_key_list] Error from z = NULL %s %d\n", __FILE__, __LINE__ );
+    return(1);
+  }
+
+  // open aff file
+  affr = aff_reader (filename);
+  if ( ( aff_status_str = aff_reader_errstr(affr) ) != NULL ) {
+    fprintf(stderr, "[aff_read_key_list] Error from aff_reader, status was %s %s %d\n", aff_status_str, __FILE__, __LINE__ );
+    return(1);
+  } else {
+    fprintf(stdout, "# [aff_read_key_list] reading data from aff file %s\n", filename);
+  }
+
+  // get root node
+  if( (affn = aff_reader_root( affr )) == NULL ) {
+    fprintf(stderr, "[aff_read_key_list] Error, aff writer is not initialized %s %d\n", __FILE__, __LINE__);
+    return(2);
+  }
+
+  uint32_t        uitems = key_length;
+  size_t          shift  = key_length;
+  double _Complex * zptr = z;
+
+  for ( int i = 0; i < key_num; i++ ) {
+    affdir = aff_reader_chpath (affr, affn, key_list[i] );
+    exitstatus = aff_node_get_complex (affr, affdir, zptr, uitems );
+    if( exitstatus != 0 ) {
+      fprintf(stderr, "[aff_read_key_list] Error from aff_node_get_complex, status was %d %s %d\n", exitstatus, __FILE__, __LINE__);
+      return(3);
+    }
+    zptr += shift;
   }
 
   // close aff file
